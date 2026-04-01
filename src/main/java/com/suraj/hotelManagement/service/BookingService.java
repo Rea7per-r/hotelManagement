@@ -1,5 +1,6 @@
 package com.suraj.hotelManagement.service;
 
+import com.suraj.hotelManagement.exception.BadRequestException;
 import com.suraj.hotelManagement.model.Booking;
 import com.suraj.hotelManagement.model.Customer;
 import com.suraj.hotelManagement.model.Room;
@@ -38,18 +39,51 @@ public class BookingService {
         this.customerRepo = customerRepo;
         this.paymentService=paymentService;
     }
+
+
     public void createBooking(Long customerId, Long roomId, LocalDate checkIn, LocalDate checkOut, int guests) {
+
         Room room= roomRepo.findById(roomId).orElseThrow();
         Customer customer=customerRepo.findById(customerId).orElseThrow();
+        // cant have 0 guests
+        if (guests <= 0) {
+            throw new BadRequestException("Guests must be at least 1");
+        }
+
+        //to ensure not to exceed room's capacity
+        if (guests > room.getCapacity()) {
+            throw new BadRequestException("Guests exceed room capacity");
+        }
+
+        //to ensure checkin and checkout dates are in order
+        if (checkIn.isAfter(checkOut) || checkIn.isEqual(checkOut)) {
+            throw new BadRequestException("Invalid date range");
+        }
+
+        //to ensure check-in date isnt in the past
+        if (checkIn.isBefore(LocalDate.now())) {
+            throw new BadRequestException("Check-in cannot be in the past");
+        }
+
+        if (!customer.isActive()) {
+            throw new BadRequestException("Customer is inactive");
+        }
+
+
+        if (room.getStatus() == RoomStatus.MAINTENANCE) {
+            throw new BadRequestException("Room under maintenance");
+        }
+
+
+
 
         long days = ChronoUnit.DAYS.between(checkIn, checkOut);
-        //double total = days * room.getPricePerNight();
 
         List<Booking> overlaps=bookingRepo.findByRoomAndCheckOutDateAfterAndCheckInDateBefore(room, checkIn, checkOut);
 
         if(!overlaps.isEmpty())
         {
-            throw new RuntimeException("Room is not available");
+            throw new BadRequestException("Room is not available");
         }
 
         Booking booking = Booking.builder()
@@ -57,7 +91,6 @@ public class BookingService {
                 .room(room)
                 .checkInDate(checkIn)
                 .checkOutDate(checkOut)
-                //.totalAmount(total)
                 .numberOfGuests(guests)
                 .status(BookingStatus.CONFIRMED)
                 .build();
@@ -75,7 +108,13 @@ public class BookingService {
 
     public void checkIn(Long bookingId) {
 
+
         Booking booking = bookingRepo.findById(bookingId).orElseThrow();
+        //no double check in
+        if (booking.getStatus() == BookingStatus.CHECKED_IN) {
+            throw new BadRequestException("Already checked in");
+        }
+
 
         booking.setStatus(BookingStatus.CHECKED_IN);
 
@@ -89,6 +128,15 @@ public class BookingService {
     {
          Booking booking= bookingRepo.findById(bookingId).orElseThrow();
 
+        //to ensure no checkout happens without checking in
+        if (booking.getStatus() != BookingStatus.CHECKED_IN) {
+            throw new BadRequestException("Check-in required first");
+        }
+
+        // prevention of double checkouts
+        if (booking.getStatus() == BookingStatus.CHECKED_OUT) {
+            throw new BadRequestException("Already checked out");
+        }
          paymentService.generateBill(booking);
          booking.setStatus(BookingStatus.CHECKED_OUT);
 
@@ -97,5 +145,6 @@ public class BookingService {
 
          bookingRepo.save(booking);
     }
+
 
 }

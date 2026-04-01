@@ -31,6 +31,7 @@ public class Booking {
     private LocalDate checkInDate;
     private LocalDate checkOutDate;
 
+    @Column(nullable = false)
     private int numberOfGuests;
 
     @Enumerated(EnumType.STRING)
