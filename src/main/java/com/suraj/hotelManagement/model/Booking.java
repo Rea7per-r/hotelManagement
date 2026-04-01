@@ -1,6 +1,7 @@
 package com.suraj.hotelManagement.model;
 
 import com.suraj.hotelManagement.model.enums.BookingStatus;
+import com.suraj.hotelManagement.model.enums.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -34,4 +35,9 @@ public class Booking {
 
     @Enumerated(EnumType.STRING)
     private BookingStatus status;
+
+//    @Enumerated(EnumType.STRING)
+//    private PaymentStatus paymentStatus;
+
+    //private Double totalAmount;
 }

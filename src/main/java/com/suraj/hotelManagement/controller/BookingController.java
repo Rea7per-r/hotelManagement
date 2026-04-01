@@ -1,7 +1,10 @@
 package com.suraj.hotelManagement.controller;
 
 import com.suraj.hotelManagement.model.Booking;
+import com.suraj.hotelManagement.model.Payment;
+import com.suraj.hotelManagement.model.enums.PaymentMethod;
 import com.suraj.hotelManagement.service.BookingService;
+import com.suraj.hotelManagement.service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,4 +34,19 @@ public class BookingController {
     {
         return bookingService.getAll();
     }
+
+    @PostMapping("/checkin")
+    public String checkIn(@RequestParam Long bookingId) {
+        bookingService.checkIn(bookingId);
+        return "Checked in successfully";
+
+    }
+
+    @PostMapping("/checkout")
+    public String checkout(@RequestParam Long bookingId){
+        bookingService.checkOut(bookingId);
+        return "Checked out successfully";
+    }
+
+
 }
