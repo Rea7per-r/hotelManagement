@@ -1,14 +1,12 @@
 package com.suraj.hotelManagement.controller;
 
+import com.suraj.hotelManagement.dto.BookingIdDTO;
+import com.suraj.hotelManagement.dto.BookingRequestDTO;
 import com.suraj.hotelManagement.model.Booking;
-import com.suraj.hotelManagement.model.Payment;
-import com.suraj.hotelManagement.model.enums.PaymentMethod;
 import com.suraj.hotelManagement.service.BookingService;
-import com.suraj.hotelManagement.service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -19,15 +17,18 @@ public class BookingController {
     BookingService bookingService;
 
     @PostMapping("/book")
-    public String createBooking(@RequestParam Long customerId,@RequestParam Long roomId,
-                                @RequestParam LocalDate checkIn,
-                                @RequestParam LocalDate checkOut,
-                                @RequestParam int guests)
-    {
-        bookingService.createBooking(customerId, roomId, checkIn, checkOut, guests);
+    public Booking createBooking(@RequestBody BookingRequestDTO request) {
+            return bookingService.createBooking(request);
 
-                return "Booked Successfully";
+
     }
+
+    @PostMapping("/cancel")
+    public Booking cancelBooking(@RequestBody BookingIdDTO request)
+    {
+        return bookingService.cancelBooking(request.getBookingId());
+    }
+
 
     @GetMapping("/allBookings")
     public List<Booking> getBookings()
@@ -36,14 +37,16 @@ public class BookingController {
     }
 
     @PostMapping("/checkin")
-    public String checkIn(@RequestParam Long bookingId) {
+    public String checkIn(@RequestBody BookingIdDTO request) {
+        Long bookingId=request.getBookingId();
         bookingService.checkIn(bookingId);
         return "Checked in successfully";
 
     }
 
     @PostMapping("/checkout")
-    public String checkout(@RequestParam Long bookingId){
+    public String checkout(@RequestBody BookingIdDTO request){
+        Long bookingId=request.getBookingId();
         bookingService.checkOut(bookingId);
         return "Checked out successfully";
     }

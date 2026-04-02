@@ -1,11 +1,11 @@
 package com.suraj.hotelManagement.service;
 
+import com.suraj.hotelManagement.dto.BookingRequestDTO;
 import com.suraj.hotelManagement.exception.BadRequestException;
 import com.suraj.hotelManagement.model.Booking;
 import com.suraj.hotelManagement.model.Customer;
 import com.suraj.hotelManagement.model.Room;
 import com.suraj.hotelManagement.model.enums.BookingStatus;
-import com.suraj.hotelManagement.model.enums.PaymentStatus;
 import com.suraj.hotelManagement.model.enums.RoomStatus;
 import com.suraj.hotelManagement.repository.BookingRepository;
 import com.suraj.hotelManagement.repository.CustomerRepository;
@@ -41,7 +41,14 @@ public class BookingService {
     }
 
 
-    public void createBooking(Long customerId, Long roomId, LocalDate checkIn, LocalDate checkOut, int guests) {
+    public Booking createBooking(BookingRequestDTO request) {
+
+
+        Long customerId = request.getCustomerId();
+        Long roomId = request.getRoomId();
+        LocalDate checkIn = request.getCheckIn();
+        LocalDate checkOut = request.getCheckOut();
+        int guests = request.getGuests();
 
         Room room= roomRepo.findById(roomId).orElseThrow();
         Customer customer=customerRepo.findById(customerId).orElseThrow();
@@ -95,7 +102,7 @@ public class BookingService {
                 .status(BookingStatus.CONFIRMED)
                 .build();
 
-       bookingRepo.save(booking);
+        return bookingRepo.save(booking);
 
 
     }
@@ -137,13 +144,42 @@ public class BookingService {
         if (booking.getStatus() == BookingStatus.CHECKED_OUT) {
             throw new BadRequestException("Already checked out");
         }
+
+
          paymentService.generateBill(booking);
+
          booking.setStatus(BookingStatus.CHECKED_OUT);
 
          Room room=booking.getRoom();
          room.setStatus(RoomStatus.AVAILABLE);
 
          bookingRepo.save(booking);
+    }
+
+
+    public Booking cancelBooking(Long bookingId) {
+
+        Booking booking = bookingRepo.findById(bookingId).orElseThrow();
+
+        // cancelled already
+        if (booking.getStatus() == BookingStatus.CANCELLED) {
+            throw new BadRequestException("Booking already cancelled");
+        }
+
+        // checkedin already
+        if (booking.getStatus() == BookingStatus.CHECKED_IN) {
+            throw new BadRequestException("Cannot cancel after check-in");
+        }
+
+        //checkedout already
+        if (booking.getStatus() == BookingStatus.CHECKED_OUT) {
+            throw new BadRequestException("Cannot cancel after check-out");
+        }
+
+
+        booking.setStatus(BookingStatus.CANCELLED);
+
+        return bookingRepo.save(booking);
     }
 
 

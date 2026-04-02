@@ -1,5 +1,6 @@
 package com.suraj.hotelManagement.controller;
 
+import com.suraj.hotelManagement.dto.RoomRequestDTO;
 import com.suraj.hotelManagement.model.Room;
 import com.suraj.hotelManagement.model.enums.RoomType;
 import com.suraj.hotelManagement.service.RoomService;
@@ -18,8 +19,8 @@ public class RoomController {
     }
 
     @PostMapping("/create")
-    public String createRoom(@RequestParam RoomType type,@RequestParam String roomNumber) {
-        service.createRoom(type, roomNumber);
+    public String createRoom(@RequestBody RoomRequestDTO request) {
+        service.createRoom(request.getType(), request.getRoomNumber());
         return "Successfully Created Room";
     }
 
