@@ -1,6 +1,7 @@
 package com.suraj.hotelManagement.service;
 
 import com.suraj.hotelManagement.dto.BookingRequestDTO;
+import com.suraj.hotelManagement.dto.BookingResponseDTO;
 import com.suraj.hotelManagement.exception.BadRequestException;
 import com.suraj.hotelManagement.model.Booking;
 import com.suraj.hotelManagement.model.Customer;
@@ -41,7 +42,7 @@ public class BookingService {
     }
 
 
-    public Booking createBooking(BookingRequestDTO request) {
+    public BookingResponseDTO createBooking(BookingRequestDTO request) {
 
 
         Long customerId = request.getCustomerId();
@@ -102,7 +103,9 @@ public class BookingService {
                 .status(BookingStatus.CONFIRMED)
                 .build();
 
-        return bookingRepo.save(booking);
+        Booking saved= bookingRepo.save(booking);
+
+        return mapToResponse(saved);
 
 
     }
@@ -157,7 +160,7 @@ public class BookingService {
     }
 
 
-    public Booking cancelBooking(Long bookingId) {
+    public BookingResponseDTO cancelBooking(Long bookingId) {
 
         Booking booking = bookingRepo.findById(bookingId).orElseThrow();
 
@@ -179,7 +182,20 @@ public class BookingService {
 
         booking.setStatus(BookingStatus.CANCELLED);
 
-        return bookingRepo.save(booking);
+        Booking saved= bookingRepo.save(booking);
+        return mapToResponse(saved);
+    }
+
+    private BookingResponseDTO mapToResponse(Booking booking) {
+        return BookingResponseDTO.builder()
+                .bookingId(booking.getBookingId())
+                .customerName(booking.getCustomer().getName())
+                .roomNumber(booking.getRoom().getRoomNumber())
+                .checkInDate(booking.getCheckInDate())
+                .checkOutDate(booking.getCheckOutDate())
+                .guests(booking.getNumberOfGuests())
+                .status(booking.getStatus().name())
+                .build();
     }
 
 
