@@ -4,12 +4,17 @@ import com.suraj.hotelManagement.factory.RoomFactory;
 import com.suraj.hotelManagement.model.Room;
 import com.suraj.hotelManagement.model.enums.RoomType;
 import com.suraj.hotelManagement.repository.RoomRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 public class RoomService {
+
+    private static final Logger log = LoggerFactory.getLogger(RoomService.class);
+
 
     private final RoomRepository repo;
 
@@ -18,9 +23,18 @@ public class RoomService {
     }
 
     public Room createRoom(RoomType type, String roomNumber) {
+
+
+        log.info("Creating room | roomNumber={} | type={}",
+                type,roomNumber);
         Room room = RoomFactory.createRoom(type);
         room.setRoomNumber(roomNumber);
+
+        log.info("Room created successfully | roomId={}", room.getRoomNumber());
+
         return repo.save(room);
+
+
     }
 
     public List<Room> getAll() {

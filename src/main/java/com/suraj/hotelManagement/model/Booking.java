@@ -37,6 +37,10 @@ public class Booking {
     @Enumerated(EnumType.STRING)
     private BookingStatus status;
 
+
+//    @ManyToOne
+//    private User user;
+//
 //    @Enumerated(EnumType.STRING)
 //    private PaymentStatus paymentStatus;
 

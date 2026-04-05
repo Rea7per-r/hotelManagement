@@ -1,11 +1,14 @@
 package com.suraj.hotelManagement.controller;
 
+import com.suraj.hotelManagement.model.Booking;
 import com.suraj.hotelManagement.model.Customer;
 import com.suraj.hotelManagement.service.CustomerService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,6 +23,8 @@ public class CustomerController {
     @Autowired
     private CustomerService service;
 
+
+    @PreAuthorize("hasAnyRole('ADMIN','RECEPTIONIST')")
     @PostMapping("/add")
     public String addCustomer(@RequestBody Customer customer)
     {
@@ -27,12 +32,13 @@ public class CustomerController {
         return "saved customer successfully";
     }
 
-
+    @PreAuthorize("hasAnyRole('ADMIN','RECEPTIONIST')")
     @GetMapping("/get")
     public List<Customer> getCustomer()
     {
         return service.getAll();
     }
+
 
 
 
