@@ -18,39 +18,51 @@ import org.slf4j.LoggerFactory;
 @RestController
 @RequestMapping("/booking")
 public class BookingController {
+
     private static final Logger log = LoggerFactory.getLogger(BookingController.class);
 
     @Autowired
     BookingService bookingService;
 
-
     @PreAuthorize("hasAnyRole('ADMIN','RECEPTIONIST','CUSTOMER')")
     @PostMapping("/book")
     public BookingResponseDTO createBooking(@RequestBody BookingRequestDTO request) {
-        log.info("Received booking request | customerId={} | roomId={}",
+
+        log.info("Create booking request | customerId={} | roomId={}",
                 request.getCustomerId(), request.getRoomId());
-            return bookingService.createBooking(request);
 
+        BookingResponseDTO response = bookingService.createBooking(request);
 
+        log.info("Booking created successfully | bookingId={}", response.getBookingId());
+
+        return response;
     }
 
     @PreAuthorize("hasAnyRole('ADMIN','RECEPTIONIST','CUSTOMER')")
     @PostMapping("/cancel")
-    public BookingResponseDTO cancelBooking(@RequestBody BookingIdDTO request)
-    {
-        return bookingService.cancelBooking(request.getBookingId());
-    }
+    public BookingResponseDTO cancelBooking(@RequestBody BookingIdDTO request) {
 
+        log.info("Cancel booking request | bookingId={}", request.getBookingId());
+
+        BookingResponseDTO response = bookingService.cancelBooking(request.getBookingId());
+
+        log.info("Booking cancelled successfully | bookingId={}", request.getBookingId());
+
+        return response;
+    }
 
     @PreAuthorize("hasAnyRole('ADMIN','RECEPTIONIST')")
     @GetMapping("/allBookings")
-    public List<Booking> getBookings()
-    {
-        return bookingService.getAll();
+    public List<Booking> getBookings() {
+
+        log.info("Fetch all bookings request");
+
+        List<Booking> bookings = bookingService.getAll();
+
+        log.info("Fetched {} bookings", bookings.size());
+
+        return bookings;
     }
-
-
-
 
     @PostMapping("/myBookings")
     @PreAuthorize("hasRole('CUSTOMER')")
@@ -58,25 +70,40 @@ public class BookingController {
 
         String username = auth.getName();
 
-        return bookingService.getByUsername(username);
+        log.info("Fetch bookings for user={}", username);
+
+        List<Booking> bookings = bookingService.getByUsername(username);
+
+        log.info("Fetched {} bookings for user={}", bookings.size(), username);
+
+        return bookings;
     }
-
-
 
     @PostMapping("/checkin")
     public String checkIn(@RequestBody BookingIdDTO request) {
-        Long bookingId=request.getBookingId();
-        bookingService.checkIn(bookingId);
-        return "Checked in successfully";
 
+        Long bookingId = request.getBookingId();
+
+        log.info("Check-in request | bookingId={}", bookingId);
+
+        bookingService.checkIn(bookingId);
+
+        log.info("Check-in successful | bookingId={}", bookingId);
+
+        return "Checked in successfully";
     }
 
     @PostMapping("/checkout")
-    public String checkout(@RequestBody BookingIdDTO request){
-        Long bookingId=request.getBookingId();
+    public String checkout(@RequestBody BookingIdDTO request) {
+
+        Long bookingId = request.getBookingId();
+
+        log.info("Check-out request | bookingId={}", bookingId);
+
         bookingService.checkOut(bookingId);
+
+        log.info("Check-out successful | bookingId={}", bookingId);
+
         return "Checked out successfully";
     }
-
-
 }

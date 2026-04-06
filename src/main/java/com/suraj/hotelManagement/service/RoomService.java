@@ -26,7 +26,7 @@ public class RoomService {
 
 
         log.info("Creating room | roomNumber={} | type={}",
-                type,roomNumber);
+                roomNumber,type);
         Room room = RoomFactory.createRoom(type);
         room.setRoomNumber(roomNumber);
 
@@ -38,14 +38,21 @@ public class RoomService {
     }
 
     public List<Room> getAll() {
+
         return repo.findAll();
     }
 
     public Room getById(Long id) {
-        return repo.findById(id).orElseThrow();
+        log.info("Request to get details of room id{}",id);
+        return repo.findById(id).orElseThrow(()-> {
+            log.error("can not find room with id{}",id);
+            return new RuntimeException();
+        });
     }
 
     public void delete(Long id) {
+
+        log.info("Request to delete room of room id{}",id);
         repo.deleteById(id);
     }
 }
