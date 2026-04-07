@@ -1,6 +1,8 @@
 package com.suraj.hotelManagement.service;
 
+import com.suraj.hotelManagement.event.PaymentEvent;
 import com.suraj.hotelManagement.exception.BadRequestException;
+import com.suraj.hotelManagement.kafka.PaymentProducer;
 import com.suraj.hotelManagement.model.Booking;
 import com.suraj.hotelManagement.model.Payment;
 import com.suraj.hotelManagement.model.enums.PaymentMethod;
@@ -24,6 +26,9 @@ public class PaymentService {
 
     @Autowired
     private PaymentRepository paymentRepo;
+
+    @Autowired
+    private PaymentProducer paymentProducer;
 
     @Autowired
     private BookingRepository bookingRepo;
@@ -82,6 +87,15 @@ public class PaymentService {
         payment.setPaymentMethod(paymentMethod);
 
         paymentRepo.save(payment);
+
+        // after marking PAID
+        paymentProducer.sendPaymentEvent(
+                new PaymentEvent(
+                        payment.getBooking().getBookingId(),
+                        payment.getTotalAmount(),
+                        "SUCCESS"
+                )
+        );
 
         log.info("Payment marked as PAID | paymentId={}", paymentId);
     }

@@ -2,7 +2,11 @@ package com.suraj.hotelManagement.service;
 
 import com.suraj.hotelManagement.dto.BookingRequestDTO;
 import com.suraj.hotelManagement.dto.BookingResponseDTO;
+import com.suraj.hotelManagement.event.BookingEvent;
+import com.suraj.hotelManagement.event.PaymentEvent;
 import com.suraj.hotelManagement.exception.BadRequestException;
+import com.suraj.hotelManagement.kafka.BookingProducer;
+import com.suraj.hotelManagement.kafka.PaymentProducer;
 import com.suraj.hotelManagement.model.Booking;
 import com.suraj.hotelManagement.model.Customer;
 import com.suraj.hotelManagement.model.Room;
@@ -33,7 +37,12 @@ public class BookingService {
     private CustomerRepository customerRepo;
 
     @Autowired
+    private BookingProducer bookingProducer;
+
+    @Autowired
     private PaymentService paymentService;
+    @Autowired
+    private PaymentProducer paymentProducer;
 
     public BookingService(
             BookingRepository bookingRepo,
@@ -67,43 +76,17 @@ public class BookingService {
             return new RuntimeException();
         });
 
-        if (guests <= 0) {
-            log.warn("Invalid guests count | guests={}", guests);
-            throw new BadRequestException("Guests must be at least 1");
-        }
-
-        if (guests > room.getCapacity()) {
-            log.warn("Guests exceed capacity | guests={} | capacity={}", guests, room.getCapacity());
-            throw new BadRequestException("Guests exceed room capacity");
-        }
-
-        if (checkIn.isAfter(checkOut) || checkIn.isEqual(checkOut)) {
-            log.warn("Invalid date range | checkIn={} | checkOut={}", checkIn, checkOut);
-            throw new BadRequestException("Invalid date range");
-        }
-
-        if (checkIn.isBefore(LocalDate.now())) {
-            log.warn("Check-in in past | checkIn={}", checkIn);
-            throw new BadRequestException("Check-in cannot be in the past");
-        }
-
-        if (!customer.isActive()) {
-            log.warn("Inactive customer | customerId={}", customerId);
-            throw new BadRequestException("Customer is inactive");
-        }
-
-        if (room.getStatus() == RoomStatus.MAINTENANCE) {
-            log.warn("Room under maintenance | roomId={}", roomId);
-            throw new BadRequestException("Room under maintenance");
-        }
-
-        long days = ChronoUnit.DAYS.between(checkIn, checkOut);
+        if (guests <= 0) throw new BadRequestException("Guests must be at least 1");
+        if (guests > room.getCapacity()) throw new BadRequestException("Guests exceed room capacity");
+        if (checkIn.isAfter(checkOut) || checkIn.isEqual(checkOut)) throw new BadRequestException("Invalid date range");
+        if (checkIn.isBefore(LocalDate.now())) throw new BadRequestException("Check-in cannot be in the past");
+        if (!customer.isActive()) throw new BadRequestException("Customer is inactive");
+        if (room.getStatus() == RoomStatus.MAINTENANCE) throw new BadRequestException("Room under maintenance");
 
         List<Booking> overlaps = bookingRepo
                 .findByRoomAndCheckOutDateAfterAndCheckInDateBefore(room, checkIn, checkOut);
 
         if (!overlaps.isEmpty()) {
-            log.warn("Room not available | roomId={} | overlappingBookings={}", roomId, overlaps.size());
             throw new BadRequestException("Room is not available");
         }
 
@@ -118,12 +101,38 @@ public class BookingService {
 
         Booking saved = bookingRepo.save(booking);
 
+
+        //kafka booking
+        BookingEvent event = new BookingEvent(
+                saved.getBookingId(),
+                saved.getCustomer().getName(),
+                "Booking Created Successfully"
+        );
+
+        bookingProducer.sendBookingEvent(event);
+
+//        //kafka payment
+//        long days = ChronoUnit.DAYS.between(
+//                booking.getCheckInDate(),
+//                booking.getCheckOutDate()
+//        );
+//        double baseAmount = days * booking.getRoom().getPricePerNight();
+//        double tax = baseAmount * 0.18;
+//        double total = baseAmount + tax;
+//
+//        PaymentEvent paymentEvent = new PaymentEvent(
+//                saved.getBookingId(),
+//                total,
+//                "PENDING"
+//        );
+
+    //    paymentProducer.sendPaymentEvent(paymentEvent);
+
         log.info("Booking created successfully | bookingId={} | customerId={} | roomId={}",
                 saved.getBookingId(), customerId, roomId);
 
         return mapToResponse(saved);
     }
-
 
     public List<Booking> getAll() {
 

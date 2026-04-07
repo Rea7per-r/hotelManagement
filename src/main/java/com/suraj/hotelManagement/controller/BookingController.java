@@ -8,6 +8,8 @@ import com.suraj.hotelManagement.service.BookingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -66,9 +68,9 @@ public class BookingController {
 
     @PostMapping("/myBookings")
     @PreAuthorize("hasRole('CUSTOMER')")
-    public List<Booking> getMyBookings(Authentication auth) {
+    public List<Booking> getMyBookings(Authentication authentication) {
 
-        String username = auth.getName();
+        String username = authentication.getName();
 
         log.info("Fetch bookings for user={}", username);
 

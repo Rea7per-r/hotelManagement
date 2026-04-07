@@ -34,6 +34,7 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
 
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
@@ -42,7 +43,10 @@ public class SecurityConfig {
 
             .authorizeHttpRequests(auth -> auth
 
-                .requestMatchers("/auth/**", "/oauth/**").permitAll()
+                .requestMatchers("/auth/**", "/oauth/**","/loginPage","/css/**").permitAll()
+                    .requestMatchers("/kafka/**").permitAll()
+                    .requestMatchers("/customers/register").permitAll()
+
 
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/reception/**").hasAnyRole("ADMIN", "RECEPTIONIST")
@@ -50,9 +54,15 @@ public class SecurityConfig {
 
                 .anyRequest().authenticated()
             )
+                .oauth2Login(oauth2->oauth2
+                        .loginPage("/loginPage")
+                        .defaultSuccessUrl("/oauth/home",true)
+                )
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
 
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+//            .sessionManagement(session -> session
+//                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(ex -> ex

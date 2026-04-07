@@ -48,7 +48,7 @@ public class PaymentController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/allPayments")
-    public List<Payment> getall() {
+    public List<Payment> getall(Authentication auth) {
 
         log.info("Fetching all payments (ADMIN access)");
 

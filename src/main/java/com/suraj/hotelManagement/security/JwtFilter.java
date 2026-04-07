@@ -40,10 +40,21 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String token = null;
         String username = null;
+        String path = request.getRequestURI();
+
+        if (path.startsWith("/oauth2") || path.startsWith("/login") || path.startsWith("/loginPage")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
-            username = jwtUtil.extractUsername(token);
+            try {
+                username = jwtUtil.extractUsername(token);
+            } catch (Exception e) {
+                filterChain.doFilter(request, response);
+                return;
+            }
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
