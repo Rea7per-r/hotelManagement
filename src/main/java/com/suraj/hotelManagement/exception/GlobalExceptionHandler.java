@@ -9,6 +9,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<String> handleRuntime(RuntimeException ex) {
-        return ResponseEntity.badRequest().body(ex.getMessage());
+        return ResponseEntity.badRequest().body(ex.getMessage());// im mentioning here that any exception throw it as badrequest
     }
 }

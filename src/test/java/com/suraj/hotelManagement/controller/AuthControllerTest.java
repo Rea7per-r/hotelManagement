@@ -1,7 +1,6 @@
-package com.suraj.hotelManagement;
+package com.suraj.hotelManagement.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.suraj.hotelManagement.controller.AuthController;
 import com.suraj.hotelManagement.dto.AuthRequestDTO;
 import com.suraj.hotelManagement.model.User;
 import com.suraj.hotelManagement.model.enums.Role;
@@ -29,6 +28,8 @@ class AuthControllerTest {
 
     @MockBean
     private com.suraj.hotelManagement.security.CustomUserDetailsService customUserDetailsService;
+
+
 
     @Autowired
     private MockMvc mockMvc; //for simulating http reqs
@@ -71,7 +72,7 @@ class AuthControllerTest {
 
         mockMvc.perform(post("/auth/login")
                         .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(objectMapper.writeValueAsString(request))) //objectmapper for json format
                 .andExpect(status().isOk())
                 .andExpect(content().string("mocked-jwt-token"));
     }

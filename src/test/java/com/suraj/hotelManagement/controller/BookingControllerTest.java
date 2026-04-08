@@ -1,7 +1,6 @@
-package com.suraj.hotelManagement;
+package com.suraj.hotelManagement.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.suraj.hotelManagement.controller.BookingController;
 import com.suraj.hotelManagement.dto.BookingIdDTO;
 import com.suraj.hotelManagement.dto.BookingRequestDTO;
 import com.suraj.hotelManagement.dto.BookingResponseDTO;
@@ -21,11 +20,8 @@ import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(BookingController.class)
 @AutoConfigureMockMvc(addFilters = false)
